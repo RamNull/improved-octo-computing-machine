@@ -4,6 +4,11 @@
   "description": "A VS Code extension that bridges Jira issue tracking with AI-powered code generation and Git workflow automation",
   "version": "0.0.1",
   "publisher": "jira-copilot-bridge",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RamNull/improved-octo-computing-machine.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
