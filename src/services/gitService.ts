@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as util from 'util';
 
-const exec = util.promisify(cp.exec);
+const execFile = util.promisify(cp.execFile);
 
 export class GitService {
     private workspaceRoot: string;
@@ -23,8 +23,8 @@ export class GitService {
             
             const branchName = `${issueKey.toLowerCase()}/${sanitizedSummary}`;
 
-            // Create and checkout the new branch
-            await exec(`git checkout -b ${branchName}`, { cwd: this.workspaceRoot });
+            // Create and checkout the new branch using execFile to avoid shell injection
+            await execFile('git', ['checkout', '-b', branchName], { cwd: this.workspaceRoot });
 
             vscode.window.showInformationMessage(`Created and checked out branch: ${branchName}`);
             return branchName;
@@ -36,7 +36,7 @@ export class GitService {
 
     async getCurrentBranch(): Promise<string> {
         try {
-            const { stdout } = await exec('git rev-parse --abbrev-ref HEAD', { cwd: this.workspaceRoot });
+            const { stdout } = await execFile('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: this.workspaceRoot });
             return stdout.trim();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -52,20 +52,20 @@ export class GitService {
 
     async commitChanges(issueKey: string, issueSummary: string): Promise<void> {
         try {
-            // Stage all changes
-            await exec('git add .', { cwd: this.workspaceRoot });
+            // Stage all changes using execFile
+            await execFile('git', ['add', '.'], { cwd: this.workspaceRoot });
 
             // Check if there are changes to commit
-            const { stdout: status } = await exec('git status --porcelain', { cwd: this.workspaceRoot });
+            const { stdout: status } = await execFile('git', ['status', '--porcelain'], { cwd: this.workspaceRoot });
             
             if (!status.trim()) {
                 vscode.window.showInformationMessage('No changes to commit');
                 return;
             }
 
-            // Commit with a meaningful message
+            // Commit with a meaningful message using execFile to prevent injection
             const commitMessage = `${issueKey}: ${issueSummary}`;
-            await exec(`git commit -m "${commitMessage}"`, { cwd: this.workspaceRoot });
+            await execFile('git', ['commit', '-m', commitMessage], { cwd: this.workspaceRoot });
 
             vscode.window.showInformationMessage('Changes committed successfully');
         } catch (error) {
@@ -80,7 +80,8 @@ export class GitService {
             const config = vscode.workspace.getConfiguration('jiraCopilotBridge');
             const remote = config.get('gitRemote', 'origin');
 
-            await exec(`git push -u ${remote} ${currentBranch}`, { cwd: this.workspaceRoot });
+            // Use execFile to push branch safely
+            await execFile('git', ['push', '-u', remote, currentBranch], { cwd: this.workspaceRoot });
 
             vscode.window.showInformationMessage(`Pushed branch ${currentBranch} to ${remote}`);
         } catch (error) {
@@ -99,8 +100,10 @@ export class GitService {
                 const prTitle = `${issueKey}: ${issueSummary}`;
                 const prBody = `${issueDescription}\n\nRelated: ${issueKey}`;
                 
-                const { stdout } = await exec(
-                    `gh pr create --title "${prTitle}" --body "${prBody}" --web`,
+                // Use execFile for gh pr create to prevent injection
+                const { stdout } = await execFile(
+                    'gh',
+                    ['pr', 'create', '--title', prTitle, '--body', prBody, '--web'],
                     { cwd: this.workspaceRoot }
                 );
 
@@ -115,7 +118,7 @@ export class GitService {
                 ).then(selection => {
                     if (selection === 'Open GitHub') {
                         // Try to get the remote URL and open it
-                        exec('git remote get-url origin', { cwd: this.workspaceRoot })
+                        execFile('git', ['remote', 'get-url', 'origin'], { cwd: this.workspaceRoot })
                             .then(({ stdout }) => {
                                 const remoteUrl = stdout.trim()
                                     .replace(/\.git$/, '')
@@ -134,7 +137,7 @@ export class GitService {
 
     async getRepositoryInfo(): Promise<{ owner: string; repo: string } | null> {
         try {
-            const { stdout } = await exec('git remote get-url origin', { cwd: this.workspaceRoot });
+            const { stdout } = await execFile('git', ['remote', 'get-url', 'origin'], { cwd: this.workspaceRoot });
             const remoteUrl = stdout.trim();
 
             // Parse GitHub URL
