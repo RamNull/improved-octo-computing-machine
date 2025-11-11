@@ -1,0 +1,102 @@
+{
+  "name": "jira-copilot-bridge",
+  "displayName": "Jira Copilot Bridge",
+  "description": "A VS Code extension that bridges Jira issue tracking with AI-powered code generation and Git workflow automation",
+  "version": "0.0.1",
+  "publisher": "jira-copilot-bridge",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:jira-copilot-bridge.selectIssue",
+    "onCommand:jira-copilot-bridge.viewIssues",
+    "onView:jiraCopilotBridge.issuesView"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jira-copilot-bridge",
+          "title": "Jira Copilot Bridge",
+          "icon": "resources/jira-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "jira-copilot-bridge": [
+        {
+          "id": "jiraCopilotBridge.issuesView",
+          "name": "Issues",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "jira-copilot-bridge.viewIssues",
+        "title": "Jira: View Issues"
+      },
+      {
+        "command": "jira-copilot-bridge.selectIssue",
+        "title": "Jira: Select Issue to Work On"
+      },
+      {
+        "command": "jira-copilot-bridge.approveChanges",
+        "title": "Jira: Approve and Update Issue"
+      }
+    ],
+    "configuration": {
+      "title": "Jira Copilot Bridge",
+      "properties": {
+        "jiraCopilotBridge.jiraUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Jira instance URL (e.g., https://yourcompany.atlassian.net)"
+        },
+        "jiraCopilotBridge.jiraEmail": {
+          "type": "string",
+          "default": "",
+          "description": "Jira email for authentication"
+        },
+        "jiraCopilotBridge.jiraApiToken": {
+          "type": "string",
+          "default": "",
+          "description": "Jira API token for authentication"
+        },
+        "jiraCopilotBridge.jiraProject": {
+          "type": "string",
+          "default": "",
+          "description": "Jira project key (e.g., PROJ)"
+        },
+        "jiraCopilotBridge.gitRemote": {
+          "type": "string",
+          "default": "origin",
+          "description": "Git remote name"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "axios": "^1.6.2"
+  }
+}
